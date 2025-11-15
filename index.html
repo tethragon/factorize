@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Παραγοντοποίηση Αριθμών</title>
+    <style>
+        /* (Το CSS παραμένει το ίδιο με πριν) */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 25px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: #005a9c;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .input-section label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #555;
+            text-align: left;
+        }
+        .input-section input[type="number"] {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box; 
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+        .input-section button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .input-section button:hover {
+            background-color: #0056b3;
+        }
+        .output-section {
+            margin-top: 20px;
+            text-align: left;
+        }
+        #stepsContainer {
+            margin: 20px auto;
+            width: fit-content; 
+        }
+        .steps-table {
+            border-collapse: collapse; 
+        }
+        .steps-table td {
+            padding: 8px 12px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.1rem;
+            text-align: right;
+        }
+        .steps-table td:first-child {
+            border-right: 2px solid #333;
+        }
+        #resultContainer {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e6f7ff;
+            border: 1px solid #b3e0ff;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #004085;
+            min-height: 1.5em; 
+            line-height: 1.5;
+        }
+        #resultContainer.error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        sup {
+            font-size: 0.8em;
+            vertical-align: super;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const numberInput = document.getElementById('numberInput');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const stepsContainer = document.getElementById('stepsContainer');
+            const resultContainer = document.getElementById('resultContainer');
+
+            // Event Listeners
+            calculateBtn.addEventListener('click', handleCalculation);
+            numberInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    handleCalculation();
+                }
+            });
+
+            /**
+             * Κύρια συνάρτηση που χειρίζεται τον υπολογισμό.
+             */
+            function handleCalculation() {
+                stepsContainer.innerHTML = '';
+                resultContainer.innerHTML = '';
+                resultContainer.classList.remove('error');
+                const n = parseInt(numberInput.value, 10);
+
+                if (isNaN(n) || n <= 1) {
+                    displayError("Παρακαλώ εισάγετε έναν ακέραιο αριθμό μεγαλύτερο του 1.");
+                    return;
+                }
+
+                const { steps, factors } = calculateFactorization(n);
+                displaySteps(steps);
+                displayResult(factors, n); // Η συνάρτηση αυτή έχει πλέον τη νέα λογική
+            }
+
+            /**
+             * Υπολογίζει την παραγοντοποίηση (βήματα και τελικούς παράγοντες).
+             */
+            function calculateFactorization(num) {
+                let n = num;
+                const steps = [];       
+                const factors = {};     
+                let divisor = 2; 
+
+                while (n > 1) {
+                    if (n % divisor === 0) {
+                        steps.push({ number: n, divisor: divisor });
+                        factors[divisor] = (factors[divisor] || 0) + 1;
+                        n = n / divisor;
+                    } else {
+                        // *** ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ: Μετά το 2, ελέγχουμε μόνο περιττούς ***
+                        if (divisor === 2) {
+                            divisor = 3;
+                        } else {
+                            divisor += 2; // Πάμε στον επόμενο περιττό
+                        }
+                        
+                        // Αν ο διαιρέτης ξεπεράσει την τετραγωνική ρίζα
+                        // του εναπομείναντος 'n', τότε το 'n' είναι σίγουρα πρώτος.
+                        // Αυτό επιταχύνει πολύ τους μεγάλους πρώτους αριθμούς.
+                        if (divisor * divisor > n && n > 1) {
+                            steps.push({ number: n, divisor: n });
+                            factors[n] = (factors[n] || 0) + 1;
+                            n = 1; // Τερματισμός
+                        }
+                    }
+                }
+                
+                // Προσθήκη του τελικού βήματος '1' (εκτός αν ο αρχικός ήταν πρώτος)
+                if (steps.length > 0 && steps[steps.length - 1].number !== 1) {
+                    steps.push({ number: 1, divisor: '' });
+                }
+                
+                return { steps, factors };
+            }
+
+            /**
+             * Εμφανίζει τα βήματα της διαδοχικής διαίρεσης.
+             */
+            function displaySteps(steps) {
+                const table = document.createElement('table');
+                table.className = 'steps-table';
+                const tbody = document.createElement('tbody');
+
+                steps.forEach(step => {
+                    const tr = document.createElement('tr');
+                    const tdNum = document.createElement('td');
+                    tdNum.textContent = step.number;
+                    const tdDiv = document.createElement('td');
+                    tdDiv.textContent = step.divisor;
+                    
+                    tr.appendChild(tdNum);
+                    tr.appendChild(tdDiv);
+                    tbody.appendChild(tr);
+                });
+
+                table.appendChild(tbody);
+                stepsContainer.appendChild(table);
+            }
+
+            /**
+             * *** ΝΕΑ ΕΚΔΟΣΗ ***
+             * Εμφανίζει το τελικό γινόμενο ΚΑΙ ελέγχει για πρώτους αριθμούς.
+             */
+            function displayResult(factors, originalNumber) {
+                let resultParts = [];
+
+                // Παίρνουμε τους παράγοντες με τη σειρά (π.χ. 2, 3, 5...)
+                const sortedBases = Object.keys(factors).sort((a, b) => a - b);
+
+                for (const base of sortedBases) {
+                    const exponent = factors[base];
+                    if (exponent === 1) {
+                        resultParts.push(base);
+                    } else {
+                        resultParts.push(`${base}<sup>${exponent}</sup>`); 
+                    }
+                }
+
+                // *** ΝΕΑ ΠΡΟΣΘΗΚΗ ***
+                // Έλεγχος αν ο αριθμός είναι πρώτος
+                // (Έχει μόνο 1 παράγοντα, και αυτός ο παράγοντας είναι ο ίδιος ο αριθμός)
+                if (resultParts.length === 1 && resultParts[0] == originalNumber) {
+                    resultContainer.innerHTML = `${originalNumber} = ${resultParts[0]} <br><strong>(Ο αριθμός είναι πρώτος)</strong>`;
+                } else {
+                    // Είναι σύνθετος αριθμός, η κανονική εμφάνιση
+                    resultContainer.innerHTML = `${originalNumber} = ${resultParts.join(' &middot; ')}`;
+                }
+            }
+            
+            /**
+             * Εμφανίζει ένα μήνυμα σφάλματος.
+             */
+            function displayError(message) {
+                resultContainer.innerHTML = message;
+                resultContainer.classList.add('error');
+            }
+        
+        }); // <-- Τέλος του 'DOMContentLoaded'
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Υπολογιστής Παραγοντοποίησης</h1>
+        
+        <div class="input-section">
+            <label for="numberInput">Εισάγετε έναν ακέραιο αριθμό (μεγαλύτερο του 1):</label>
+            <input type="number" id="numberInput" placeholder="π.χ. 600">
+            <button id="calculateBtn">Υπολογισμός</button>
+        </div>
+
+        <div class="output-section">
+            <div id="stepsContainer"></div>
+            <div id="resultContainer"></div>
+        </div>
+    </div>
+
+</body>
+</html>
