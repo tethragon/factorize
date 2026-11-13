@@ -1,11 +1,29 @@
+<!--
+/*
+ * Copyright (C) 2025 [GEORGE PETRAKIS]
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+-->
 <!DOCTYPE html>
 <html lang="el">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Παραγοντοποίηση Αριθμών</title>
+    <title>Υπολογιστής Παραγοντοποίησης</title>
+    <meta name="description" content="Υπολογιστής παραγοντοποίησης ακεραίων αριθμών σε πρώτους παράγοντες με αναλυτικά βήματα και εξαγωγή κειμένου/εικόνας.">
+    <meta property="og:title" content="Υπολογιστής Παραγοντοποίησης">
+    <meta property="og:description" content="Υπολογιστής παραγοντοποίησης ακεραίων αριθμών σε πρώτους παράγοντες με αναλυτικά βήματα και εξαγωγή κειμένου/εικόνας.">
+    <meta property="og:type" content="website">
     <style>
-        /* (Το CSS παραμένει το ίδιο με πριν) */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f7f6;
@@ -16,20 +34,57 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            box-sizing: border-box;
         }
         .container {
+            position: relative;
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             padding: 25px 30px;
-            width: 100%;
-            max-width: 400px;
+            width: fit-content;
+            min-width: min(100%, 440px);
+            max-width: min(720px, calc(100vw - 40px));
             text-align: center;
+            box-sizing: border-box;
+        }
+        .info-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid #d0dce5;
+            background-color: #f8fbfd;
+            color: #005a9c;
+            font-family: Georgia, "Times New Roman", serif;
+            font-style: italic;
+            font-weight: 700;
+            font-size: 0.95rem;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+            padding: 0;
+        }
+        .info-btn:hover {
+            background-color: #e6f7ff;
+            border-color: #007bff;
+            color: #004085;
+            transform: scale(1.05);
+        }
+        .info-btn:focus-visible {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
         }
         h1 {
             color: #005a9c;
             margin-top: 0;
             margin-bottom: 20px;
+            padding: 0 28px;
             font-size: 1.5rem;
         }
         .input-section {
@@ -40,9 +95,10 @@
         }
         .input-section label {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: clamp(0.73rem, 3.1vw, 0.88rem);
             color: #555;
             text-align: left;
+            white-space: nowrap;
         }
         .input-section input[type="number"] {
             padding: 12px;
@@ -50,15 +106,15 @@
             border-radius: 6px;
             font-size: 1rem;
             width: 100%;
-            box-sizing: border-box; 
+            box-sizing: border-box;
         }
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-          -webkit-appearance: none; 
-          margin: 0; 
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
         input[type=number] {
-          -moz-appearance: textfield;
+            -moz-appearance: textfield;
         }
         .input-section button {
             padding: 12px 20px;
@@ -80,19 +136,26 @@
         }
         #stepsContainer {
             margin: 20px auto;
-            width: fit-content; 
+            width: fit-content;
+            max-width: 100%;
+            overflow-x: auto;
         }
         .steps-table {
-            border-collapse: collapse; 
+            border-collapse: collapse;
+            margin: 0 auto;
         }
         .steps-table td {
             padding: 8px 12px;
             font-family: "Courier New", Courier, monospace;
             font-size: 1.1rem;
-            text-align: right;
+            white-space: nowrap;
         }
         .steps-table td:first-child {
             border-right: 2px solid #333;
+            text-align: right;
+        }
+        .steps-table td:last-child {
+            text-align: left;
         }
         #resultContainer {
             margin-top: 15px;
@@ -104,8 +167,11 @@
             font-size: 1.2rem;
             font-weight: 600;
             color: #004085;
-            min-height: 1.5em; 
+            min-height: 1.5em;
             line-height: 1.5;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            box-sizing: border-box;
         }
         #resultContainer.error {
             background-color: #f8d7da;
@@ -116,17 +182,257 @@
             font-size: 0.8em;
             vertical-align: super;
         }
+
+        /* Export Actions */
+        .export-actions {
+            display: none;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .export-actions.visible {
+            display: flex;
+        }
+        .export-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 12px;
+            background-color: #f8fbfd;
+            color: #005a9c;
+            border: 1px solid #b3d7f2;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+        .export-btn:hover {
+            background-color: #e6f7ff;
+            border-color: #007bff;
+            color: #004085;
+        }
+        .export-btn.copied {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .export-btn.copy-error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .export-btn svg {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
+
+        /* Info Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .modal-backdrop.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-card {
+            position: relative;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+            width: 100%;
+            max-width: 370px;
+            padding: 26px 26px 24px;
+            box-sizing: border-box;
+            text-align: center;
+            transform: translateY(10px) scale(0.98);
+            transition: transform 0.2s ease;
+        }
+        .modal-backdrop.open .modal-card {
+            transform: translateY(0) scale(1);
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 1.45rem;
+            line-height: 1;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .modal-close:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .modal-header {
+            margin-bottom: 18px;
+        }
+        .modal-title {
+            margin: 0 0 8px 0;
+            font-size: 1.15rem;
+            color: #005a9c;
+            font-weight: 700;
+            padding: 0 16px;
+        }
+        .version-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #004085;
+            background-color: #e6f7ff;
+            border: 1px solid #b3e0ff;
+            border-radius: 999px;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .modal-info-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .architect-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .architect-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+        }
+        .architect-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .modal-divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            width: 100%;
+        }
+        .modal-footer-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.88rem;
+            color: #475569;
+        }
+        .copyright-line {
+            white-space: nowrap;
+            font-weight: 500;
+            color: #334155;
+        }
+        .license-line {
+            color: #475569;
+        }
+        .license-line a {
+            color: #005a9c;
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 90, 156, 0.35);
+            transition: color 0.15s ease, border-color 0.15s ease;
+        }
+        .license-line a:hover {
+            color: #004085;
+            border-bottom-color: #004085;
+        }
     </style>
 
     <script>
+    /*
+    * Copyright (C) 2025 [GEORGE PETRAKIS]
+    *
+    * This program is free software: you can redistribute it and/or modify
+    * it under the terms of the GNU General Public License as published by
+    * the Free Software Foundation, either version 3 of the License, or
+    * (at your option) any later version.
+    *
+    * This program is distributed in the hope that it will be useful,
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    * GNU General Public License for more details.
+    */
+        // ==========================================
+        // ΕΚΔΟΣΗ ΕΦΑΡΜΟΓΗΣ - ΑΛΛΑΞΤΕ ΤΗΝ ΕΔΩ
+        const APP_VERSION = "v1.3.0";
+        // ==========================================
+
         document.addEventListener('DOMContentLoaded', () => {
-            // DOM Elements
             const numberInput = document.getElementById('numberInput');
             const calculateBtn = document.getElementById('calculateBtn');
             const stepsContainer = document.getElementById('stepsContainer');
             const resultContainer = document.getElementById('resultContainer');
+            const exportActions = document.getElementById('exportActions');
+            const copyTextBtn = document.getElementById('copyTextBtn');
+            const copyImageBtn = document.getElementById('copyImageBtn');
 
-            // Event Listeners
+            const infoBtn = document.getElementById('infoBtn');
+            const infoModal = document.getElementById('infoModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const appVersionBadge = document.getElementById('appVersionBadge');
+
+            appVersionBadge.textContent = APP_VERSION;
+
+            let lastCalculation = null;
+            const copyTimers = new WeakMap();
+
+            // Modal interactions
+            function openModal() {
+                infoModal.classList.add('open');
+                infoModal.setAttribute('aria-hidden', 'false');
+                closeModalBtn.focus();
+            }
+
+            function closeModal() {
+                infoModal.classList.remove('open');
+                infoModal.setAttribute('aria-hidden', 'true');
+                infoBtn.focus();
+            }
+
+            infoBtn.addEventListener('click', openModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            infoModal.addEventListener('click', (e) => {
+                if (e.target === infoModal) {
+                    closeModal();
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && infoModal.classList.contains('open')) {
+                    closeModal();
+                }
+            });
+
+            // Calculation interactions
             calculateBtn.addEventListener('click', handleCalculation);
             numberInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') {
@@ -134,13 +440,16 @@
                 }
             });
 
-            /**
-             * Κύρια συνάρτηση που χειρίζεται τον υπολογισμό.
-             */
+            copyTextBtn.addEventListener('click', handleCopyText);
+            copyImageBtn.addEventListener('click', handleCopyImage);
+
             function handleCalculation() {
                 stepsContainer.innerHTML = '';
                 resultContainer.innerHTML = '';
                 resultContainer.classList.remove('error');
+                exportActions.classList.remove('visible');
+                lastCalculation = null;
+
                 const n = parseInt(numberInput.value, 10);
 
                 if (isNaN(n) || n <= 1) {
@@ -149,18 +458,27 @@
                 }
 
                 const { steps, factors } = calculateFactorization(n);
+                const sortedBases = Object.keys(factors).sort((a, b) => a - b);
+                const isPrime = sortedBases.length === 1 && Number(sortedBases[0]) === n && factors[sortedBases[0]] === 1;
+
+                lastCalculation = {
+                    originalNumber: n,
+                    steps,
+                    factors,
+                    sortedBases,
+                    isPrime
+                };
+
                 displaySteps(steps);
-                displayResult(factors, n); // Η συνάρτηση αυτή έχει πλέον τη νέα λογική
+                displayResult(factors, n);
+                exportActions.classList.add('visible');
             }
 
-            /**
-             * Υπολογίζει την παραγοντοποίηση (βήματα και τελικούς παράγοντες).
-             */
             function calculateFactorization(num) {
                 let n = num;
-                const steps = [];       
-                const factors = {};     
-                let divisor = 2; 
+                const steps = [];
+                const factors = {};
+                let divisor = 2;
 
                 while (n > 1) {
                     if (n % divisor === 0) {
@@ -168,35 +486,32 @@
                         factors[divisor] = (factors[divisor] || 0) + 1;
                         n = n / divisor;
                     } else {
-                        // *** ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ: Μετά το 2, ελέγχουμε μόνο περιττούς ***
                         if (divisor === 2) {
                             divisor = 3;
                         } else {
-                            divisor += 2; // Πάμε στον επόμενο περιττό
+                            divisor += 2;
                         }
-                        
-                        // Αν ο διαιρέτης ξεπεράσει την τετραγωνική ρίζα
-                        // του εναπομείναντος 'n', τότε το 'n' είναι σίγουρα πρώτος.
-                        // Αυτό επιταχύνει πολύ τους μεγάλους πρώτους αριθμούς.
+
                         if (divisor * divisor > n && n > 1) {
                             steps.push({ number: n, divisor: n });
                             factors[n] = (factors[n] || 0) + 1;
-                            n = 1; // Τερματισμός
+                            n = 1;
                         }
                     }
                 }
-                
-                // Προσθήκη του τελικού βήματος '1' (εκτός αν ο αρχικός ήταν πρώτος)
+
                 if (steps.length > 0 && steps[steps.length - 1].number !== 1) {
                     steps.push({ number: 1, divisor: '' });
                 }
-                
+
                 return { steps, factors };
             }
 
-            /**
-             * Εμφανίζει τα βήματα της διαδοχικής διαίρεσης.
-             */
+            function formatNumber(value) {
+                if (value === '' || value === null || value === undefined) return '';
+                return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            }
+
             function displaySteps(steps) {
                 const table = document.createElement('table');
                 table.className = 'steps-table';
@@ -205,10 +520,10 @@
                 steps.forEach(step => {
                     const tr = document.createElement('tr');
                     const tdNum = document.createElement('td');
-                    tdNum.textContent = step.number;
+                    tdNum.textContent = formatNumber(step.number);
                     const tdDiv = document.createElement('td');
-                    tdDiv.textContent = step.divisor;
-                    
+                    tdDiv.textContent = step.divisor !== '' ? formatNumber(step.divisor) : '';
+
                     tr.appendChild(tdNum);
                     tr.appendChild(tdDiv);
                     tbody.appendChild(tr);
@@ -218,52 +533,384 @@
                 stepsContainer.appendChild(table);
             }
 
-            /**
-             * *** ΝΕΑ ΕΚΔΟΣΗ ***
-             * Εμφανίζει το τελικό γινόμενο ΚΑΙ ελέγχει για πρώτους αριθμούς.
-             */
             function displayResult(factors, originalNumber) {
                 let resultParts = [];
-
-                // Παίρνουμε τους παράγοντες με τη σειρά (π.χ. 2, 3, 5...)
                 const sortedBases = Object.keys(factors).sort((a, b) => a - b);
 
                 for (const base of sortedBases) {
                     const exponent = factors[base];
+                    const formattedBase = formatNumber(base);
                     if (exponent === 1) {
-                        resultParts.push(base);
+                        resultParts.push(formattedBase);
                     } else {
-                        resultParts.push(`${base}<sup>${exponent}</sup>`); 
+                        resultParts.push(`${formattedBase}<sup>${exponent}</sup>`);
                     }
                 }
 
-                // *** ΝΕΑ ΠΡΟΣΘΗΚΗ ***
-                // Έλεγχος αν ο αριθμός είναι πρώτος
-                // (Έχει μόνο 1 παράγοντα, και αυτός ο παράγοντας είναι ο ίδιος ο αριθμός)
-                if (resultParts.length === 1 && resultParts[0] == originalNumber) {
-                    resultContainer.innerHTML = `${originalNumber} = ${resultParts[0]} <br><strong>(Ο αριθμός είναι πρώτος)</strong>`;
+                const formattedOriginal = formatNumber(originalNumber);
+                const isPrime = sortedBases.length === 1 && Number(sortedBases[0]) === originalNumber && factors[sortedBases[0]] === 1;
+
+                if (isPrime) {
+                    resultContainer.innerHTML = `${formattedOriginal} = ${resultParts[0]} <br><strong>(Ο αριθμός είναι πρώτος)</strong>`;
                 } else {
-                    // Είναι σύνθετος αριθμός, η κανονική εμφάνιση
-                    resultContainer.innerHTML = `${originalNumber} = ${resultParts.join(' &middot; ')}`;
+                    resultContainer.innerHTML = `${formattedOriginal} = ${resultParts.join(' &middot; ')}`;
                 }
             }
-            
-            /**
-             * Εμφανίζει ένα μήνυμα σφάλματος.
-             */
+
             function displayError(message) {
                 resultContainer.innerHTML = message;
                 resultContainer.classList.add('error');
+                exportActions.classList.remove('visible');
+                lastCalculation = null;
             }
-        
-        }); // <-- Τέλος του 'DOMContentLoaded'
+
+            function toUnicodeSuperscript(value) {
+                const supMap = {
+                    '0': '⁰',
+                    '1': '¹',
+                    '2': '²',
+                    '3': '³',
+                    '4': '⁴',
+                    '5': '⁵',
+                    '6': '⁶',
+                    '7': '⁷',
+                    '8': '⁸',
+                    '9': '⁹'
+                };
+                return String(value).split('').map(ch => supMap[ch] || ch).join('');
+            }
+
+            function buildExportTextPayloads(calc) {
+                const { originalNumber, steps, factors, sortedBases, isPrime } = calc;
+                const formattedOriginal = formatNumber(originalNumber);
+
+                // Plain Text (ASCII aligned with spaces + Unicode superscripts)
+                const maxLeftChars = Math.max(...steps.map(s => formatNumber(s.number).length));
+                const maxRightChars = Math.max(1, ...steps.map(s => s.divisor !== '' ? formatNumber(s.divisor).length : 0));
+
+                const plainLines = steps.map(step => {
+                    const left = formatNumber(step.number).padStart(maxLeftChars, ' ');
+                    if (step.divisor !== '') {
+                        return `${left} | ${formatNumber(step.divisor)}`;
+                    }
+                    return `${left} |`;
+                });
+
+                const plainFactorParts = sortedBases.map(base => {
+                    const exp = factors[base];
+                    const formattedBase = formatNumber(base);
+                    return exp === 1 ? `${formattedBase}` : `${formattedBase}${toUnicodeSuperscript(exp)}`;
+                });
+
+                let plainResultLine = `${formattedOriginal} = ${plainFactorParts.join(' · ')}`;
+                if (isPrime) {
+                    plainResultLine += `\n(Ο αριθμός είναι πρώτος)`;
+                }
+
+                const plainText = `${plainLines.join('\n')}\n\n${plainResultLine}`;
+
+                // HTML / Rich Text (LibreOffice Writer & MS Word compatible)
+                const monoFont = "'DejaVu Sans Mono', 'Courier New', monospace";
+                const leftColPx = Math.max(32, Math.ceil(maxLeftChars * 9.5 + 18));
+                const rightColPx = Math.max(28, Math.ceil(maxRightChars * 9.5 + 18));
+                const tableWidthPx = leftColPx + rightColPx;
+
+                const htmlRows = steps.map(step => {
+                    const numCell = formatNumber(step.number);
+                    const divCell = step.divisor !== '' ? formatNumber(step.divisor) : '&nbsp;';
+                    return (
+                        `<tr>` +
+                        `<td width="${leftColPx}" nowrap align="right" style="width: ${leftColPx}px; white-space: nowrap; font-family: ${monoFont}; font-size: 11pt; text-align: right; padding: 3px 8px; border-right: 2px solid #333333; color: #333333;">${numCell}</td>` +
+                        `<td width="${rightColPx}" nowrap align="left" style="width: ${rightColPx}px; white-space: nowrap; font-family: ${monoFont}; font-size: 11pt; text-align: left; padding: 3px 8px; color: #333333;">${divCell}</td>` +
+                        `</tr>`
+                    );
+                }).join('');
+
+                // Clean bare <sup> tags ensure LibreOffice Writer & MS Word apply native superscript formatting
+                const htmlFactorParts = sortedBases.map(base => {
+                    const exp = factors[base];
+                    const formattedBase = formatNumber(base);
+                    return exp === 1 ? `${formattedBase}` : `${formattedBase}<sup>${exp}</sup>`;
+                });
+
+                const htmlPrimeNote = isPrime ? `<br><strong>(Ο αριθμός είναι πρώτος)</strong>` : '';
+                const htmlContent =
+                    '<!DOCTYPE html>' +
+                    '<' + 'html><' + 'head><meta charset="UTF-8"><' + '/head>' +
+                    '<' + `body style="font-family: ${monoFont}; color: #333333;">` +
+                    `<table width="${tableWidthPx}" cellspacing="0" cellpadding="0" style="width: ${tableWidthPx}px; border-collapse: collapse; font-family: ${monoFont}; margin-bottom: 12px;">` +
+                    `<tbody>${htmlRows}</tbody>` +
+                    `</table>` +
+                    `<p style="font-family: ${monoFont}; font-size: 11pt; font-weight: bold; color: #004085; margin: 10px 0 0 0;">` +
+                    `${formattedOriginal} = ${htmlFactorParts.join(' &middot; ')}${htmlPrimeNote}` +
+                    `</p>` +
+                    '<' + '/body><' + '/html>';
+
+                return { plainText, htmlContent };
+            }
+
+            async function handleCopyText() {
+                if (!lastCalculation) return;
+                const { plainText, htmlContent } = buildExportTextPayloads(lastCalculation);
+
+                try {
+                    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
+                        const item = new ClipboardItem({
+                            'text/html': new Blob([htmlContent], { type: 'text/html' }),
+                            'text/plain': new Blob([plainText], { type: 'text/plain' })
+                        });
+                        await navigator.clipboard.write([item]);
+                    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(plainText);
+                    } else {
+                        fallbackLegacyCopyText(plainText);
+                    }
+                    showButtonFeedback(copyTextBtn, 'Αντιγράφηκε! ✓', 'copied');
+                } catch (err) {
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(plainText);
+                        } else {
+                            fallbackLegacyCopyText(plainText);
+                        }
+                        showButtonFeedback(copyTextBtn, 'Αντιγράφηκε! ✓', 'copied');
+                    } catch (fallbackErr) {
+                        showButtonFeedback(copyTextBtn, 'Αποτυχία αντιγραφής', 'copy-error');
+                    }
+                }
+            }
+
+            function fallbackLegacyCopyText(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.top = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                if (!ok) {
+                    throw new Error('execCommand copy failed');
+                }
+            }
+
+            function renderCalculationToCanvas(calc) {
+                const { originalNumber, steps, factors, sortedBases, isPrime } = calc;
+
+                const scale = 2; // Retina / 2x high-DPI clarity
+                const outerPadding = 28;
+                const rowHeight = 30;
+                const colPaddingX = 14;
+
+                const tableFont = '18px "Courier New", Courier, monospace';
+                const resultBaseFont = '600 19px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+                const resultSupFont = '600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+                const primeNoteFont = '700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Measure steps table columns
+                ctx.font = tableFont;
+                const maxLeftWidth = Math.max(...steps.map(s => ctx.measureText(formatNumber(s.number)).width));
+                const maxRightWidth = Math.max(
+                    ctx.measureText('2').width,
+                    ...steps.map(s => ctx.measureText(s.divisor !== '' ? formatNumber(s.divisor) : '').width)
+                );
+
+                const leftColWidth = maxLeftWidth + colPaddingX * 2;
+                const rightColWidth = maxRightWidth + colPaddingX * 2;
+                const tableWidth = leftColWidth + rightColWidth;
+                const tableHeight = steps.length * rowHeight;
+
+                // Build result segments for accurate superscript measurement and drawing
+                const resultSegments = [{ text: `${formatNumber(originalNumber)} = `, isSup: false }];
+                sortedBases.forEach((base, idx) => {
+                    if (idx > 0) {
+                        resultSegments.push({ text: ' · ', isSup: false });
+                    }
+                    resultSegments.push({ text: formatNumber(base), isSup: false });
+                    const exp = factors[base];
+                    if (exp > 1) {
+                        resultSegments.push({ text: String(exp), isSup: true });
+                    }
+                });
+
+                let resultEqWidth = 0;
+                resultSegments.forEach(seg => {
+                    ctx.font = seg.isSup ? resultSupFont : resultBaseFont;
+                    resultEqWidth += ctx.measureText(seg.text).width;
+                });
+
+                let primeLineWidth = 0;
+                const primeText = '(Ο αριθμός είναι πρώτος)';
+                if (isPrime) {
+                    ctx.font = primeNoteFont;
+                    primeLineWidth = ctx.measureText(primeText).width;
+                }
+
+                const resultBoxPadX = 24;
+                const resultBoxPadY = 16;
+                const resultLineHeight = 26;
+                const resultContentWidth = Math.max(resultEqWidth, primeLineWidth);
+                const minResultBoxWidth = Math.max(260, tableWidth);
+                const resultBoxWidth = Math.max(minResultBoxWidth, resultContentWidth + resultBoxPadX * 2);
+                const resultBoxHeight = resultBoxPadY * 2 + resultLineHeight + (isPrime ? 28 : 0);
+
+                const gapBetweenTableAndBox = 22;
+                const contentWidth = Math.max(tableWidth, resultBoxWidth);
+                const logicalWidth = Math.ceil(contentWidth + outerPadding * 2);
+                const logicalHeight = Math.ceil(outerPadding * 2 + tableHeight + gapBetweenTableAndBox + resultBoxHeight);
+
+                canvas.width = logicalWidth * scale;
+                canvas.height = logicalHeight * scale;
+                ctx.scale(scale, scale);
+
+                // Solid white background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, logicalWidth, logicalHeight);
+
+                // Draw steps table centered horizontally
+                const tableStartX = (logicalWidth - tableWidth) / 2;
+                const tableStartY = outerPadding;
+                const dividerX = tableStartX + leftColWidth;
+
+                ctx.font = tableFont;
+                ctx.fillStyle = '#333333';
+                ctx.textBaseline = 'middle';
+
+                steps.forEach((step, index) => {
+                    const rowCenterY = tableStartY + index * rowHeight + rowHeight / 2;
+
+                    // Left column (right-aligned)
+                    ctx.textAlign = 'right';
+                    ctx.fillText(formatNumber(step.number), dividerX - colPaddingX, rowCenterY);
+
+                    // Right column (left-aligned next to divider)
+                    if (step.divisor !== '') {
+                        ctx.textAlign = 'left';
+                        ctx.fillText(formatNumber(step.divisor), dividerX + colPaddingX, rowCenterY);
+                    }
+                });
+
+                // Vertical divider line
+                ctx.beginPath();
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 2;
+                ctx.moveTo(dividerX, tableStartY);
+                ctx.lineTo(dividerX, tableStartY + tableHeight);
+                ctx.stroke();
+
+                // Draw result box
+                const boxX = (logicalWidth - resultBoxWidth) / 2;
+                const boxY = tableStartY + tableHeight + gapBetweenTableAndBox;
+                const radius = 6;
+
+                ctx.beginPath();
+                ctx.moveTo(boxX + radius, boxY);
+                ctx.lineTo(boxX + resultBoxWidth - radius, boxY);
+                ctx.quadraticCurveTo(boxX + resultBoxWidth, boxY, boxX + resultBoxWidth, boxY + radius);
+                ctx.lineTo(boxX + resultBoxWidth, boxY + resultBoxHeight - radius);
+                ctx.quadraticCurveTo(boxX + resultBoxWidth, boxY + resultBoxHeight, boxX + resultBoxWidth - radius, boxY + resultBoxHeight);
+                ctx.lineTo(boxX + radius, boxY + resultBoxHeight);
+                ctx.quadraticCurveTo(boxX, boxY + resultBoxHeight, boxX, boxY + resultBoxHeight - radius);
+                ctx.lineTo(boxX, boxY + radius);
+                ctx.quadraticCurveTo(boxX, boxY, boxX + radius, boxY);
+                ctx.closePath();
+
+                ctx.fillStyle = '#e6f7ff';
+                ctx.fill();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#b3e0ff';
+                ctx.stroke();
+
+                // Draw result equation centered inside result box
+                ctx.fillStyle = '#004085';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+
+                let cursorX = boxX + (resultBoxWidth - resultEqWidth) / 2;
+                const eqBaselineY = boxY + resultBoxPadY + 19;
+
+                resultSegments.forEach(seg => {
+                    ctx.font = seg.isSup ? resultSupFont : resultBaseFont;
+                    const yOffset = seg.isSup ? -7 : 0;
+                    ctx.fillText(seg.text, cursorX, eqBaselineY + yOffset);
+                    cursorX += ctx.measureText(seg.text).width;
+                });
+
+                if (isPrime) {
+                    ctx.font = primeNoteFont;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(primeText, boxX + resultBoxWidth / 2, eqBaselineY + 28);
+                }
+
+                return canvas;
+            }
+
+            async function handleCopyImage() {
+                if (!lastCalculation) return;
+
+                try {
+                    if (typeof ClipboardItem === 'undefined' || !navigator.clipboard || !navigator.clipboard.write) {
+                        throw new Error('Clipboard image API unavailable');
+                    }
+
+                    const canvas = renderCalculationToCanvas(lastCalculation);
+                    const blob = await new Promise((resolve, reject) => {
+                        canvas.toBlob((resultBlob) => {
+                            if (resultBlob) {
+                                resolve(resultBlob);
+                            } else {
+                                reject(new Error('Failed to create PNG blob'));
+                            }
+                        }, 'image/png');
+                    });
+
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+
+                    showButtonFeedback(copyImageBtn, 'Αντιγράφηκε! ✓', 'copied');
+                } catch (err) {
+                    showButtonFeedback(copyImageBtn, 'Μη υποστηριζόμενο', 'copy-error');
+                }
+            }
+
+            function showButtonFeedback(button, tempText, statusClass) {
+                const labelSpan = button.querySelector('.btn-label');
+                if (!button.dataset.originalLabel) {
+                    button.dataset.originalLabel = labelSpan.textContent;
+                }
+
+                const existingTimer = copyTimers.get(button);
+                if (existingTimer) {
+                    clearTimeout(existingTimer);
+                }
+
+                button.classList.remove('copied', 'copy-error');
+                button.classList.add(statusClass);
+                labelSpan.textContent = tempText;
+
+                const timerId = setTimeout(() => {
+                    button.classList.remove('copied', 'copy-error');
+                    labelSpan.textContent = button.dataset.originalLabel;
+                    copyTimers.delete(button);
+                }, 2000);
+
+                copyTimers.set(button, timerId);
+            }
+        });
     </script>
 </head>
 <body>
 
     <div class="container">
+        <button type="button" id="infoBtn" class="info-btn" aria-label="Πληροφορίες εφαρμογής" title="Πληροφορίες">i</button>
+
         <h1>Υπολογιστής Παραγοντοποίησης</h1>
-        
+
         <div class="input-section">
             <label for="numberInput">Εισάγετε έναν ακέραιο αριθμό (μεγαλύτερο του 1):</label>
             <input type="number" id="numberInput" placeholder="π.χ. 600">
@@ -273,6 +920,46 @@
         <div class="output-section">
             <div id="stepsContainer"></div>
             <div id="resultContainer"></div>
+            <div id="exportActions" class="export-actions">
+                <button type="button" id="copyTextBtn" class="export-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span class="btn-label">Αντιγραφή Κειμένου</span>
+                </button>
+                <button type="button" id="copyImageBtn" class="export-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span class="btn-label">Αντιγραφή Εικόνας</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="infoModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-card">
+            <button type="button" id="closeModalBtn" class="modal-close" aria-label="Κλείσιμο">&times;</button>
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Υπολογιστής Παραγοντοποίησης</h2>
+                <span id="appVersionBadge" class="version-badge"></span>
+            </div>
+            <div class="modal-info-box">
+                <div class="architect-block">
+                    <span class="architect-label">Program Architect</span>
+                    <span class="architect-name">George Petrakis</span>
+                </div>
+                <div class="modal-divider"></div>
+                <div class="modal-footer-meta">
+                    <div class="copyright-line">Copyright &copy; 2025 George Petrakis</div>
+                    <div class="license-line">
+                        Άδεια χρήσης: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GNU GPLv3</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
