@@ -384,7 +384,7 @@
     */
         // ==========================================
         // ΕΚΔΟΣΗ ΕΦΑΡΜΟΓΗΣ - ΑΛΛΑΞΤΕ ΤΗΝ ΕΔΩ
-        const APP_VERSION = "v1.3.0";
+        const APP_VERSION = "v1.4.0";
         // ==========================================
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -611,8 +611,8 @@
 
                 // HTML / Rich Text (LibreOffice Writer & MS Word compatible)
                 const monoFont = "'DejaVu Sans Mono', 'Courier New', monospace";
-                const leftColPx = Math.max(32, Math.ceil(maxLeftChars * 9.5 + 18));
-                const rightColPx = Math.max(28, Math.ceil(maxRightChars * 9.5 + 18));
+                const leftColPx = Math.max(38, Math.ceil(maxLeftChars * 9.5 + 24));
+                const rightColPx = Math.max(34, Math.ceil(maxRightChars * 9.5 + 24));
                 const tableWidthPx = leftColPx + rightColPx;
 
                 const htmlRows = steps.map(step => {
@@ -620,8 +620,8 @@
                     const divCell = step.divisor !== '' ? formatNumber(step.divisor) : '&nbsp;';
                     return (
                         `<tr>` +
-                        `<td width="${leftColPx}" nowrap align="right" style="width: ${leftColPx}px; white-space: nowrap; font-family: ${monoFont}; font-size: 11pt; text-align: right; padding: 3px 8px; border-right: 2px solid #333333; color: #333333;">${numCell}</td>` +
-                        `<td width="${rightColPx}" nowrap align="left" style="width: ${rightColPx}px; white-space: nowrap; font-family: ${monoFont}; font-size: 11pt; text-align: left; padding: 3px 8px; color: #333333;">${divCell}</td>` +
+                        `<td width="${leftColPx}" nowrap align="right" style="width: ${leftColPx}px; white-space: nowrap; font-family: ${monoFont}; font-size: 11pt; text-align: right; padding-top: 3px; padding-bottom: 3px; padding-left: 6px; padding-right: 8px; border-top: none; border-bottom: none; border-left: none; border-right: 2px solid #333333; color: #333333;">${numCell}</td>` +
+                        `<td width="${rightColPx}" nowrap align="left" style="width: ${rightColPx}px; white-space: nowrap; font-family: ${monoFont}; font-size: 11pt; text-align: left; padding-top: 3px; padding-bottom: 3px; padding-left: 8px; padding-right: 6px; border-top: none; border-bottom: none; border-right: none; border-left: 2px solid #333333; color: #333333;">${divCell}</td>` +
                         `</tr>`
                     );
                 }).join('');
@@ -638,7 +638,7 @@
                     '<!DOCTYPE html>' +
                     '<' + 'html><' + 'head><meta charset="UTF-8"><' + '/head>' +
                     '<' + `body style="font-family: ${monoFont}; color: #333333;">` +
-                    `<table width="${tableWidthPx}" cellspacing="0" cellpadding="0" style="width: ${tableWidthPx}px; border-collapse: collapse; font-family: ${monoFont}; margin-bottom: 12px;">` +
+                    `<table width="${tableWidthPx}" cellspacing="0" cellpadding="5" style="width: ${tableWidthPx}px; border-collapse: collapse; font-family: ${monoFont}; margin-bottom: 12px;">` +
                     `<tbody>${htmlRows}</tbody>` +
                     `</table>` +
                     `<p style="font-family: ${monoFont}; font-size: 11pt; font-weight: bold; color: #004085; margin: 10px 0 0 0;">` +
